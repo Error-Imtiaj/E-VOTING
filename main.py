@@ -45,6 +45,28 @@ def check_voter_registration(nid: str, db: Session = Depends(get_db)):
         "message": "Voter is registered ✅"
     }
 
+@app.get("/voterlist")
+def voter_list(db: Session = Depends(get_db)):
+    """
+    Returns the list of all registered voters
+    """
+    voters = db.query(models.Voter).all()
+    if not voters:
+        return {"message": "No voters registered yet", "voters": []}
+
+    results = []
+    for voter in voters:
+        results.append({
+            "id": voter.id,
+            "nid": voter.nid,
+            "name": voter.name,
+            "birth_date": str(voter.birth_date) if voter.birth_date else None,
+            "has_voted": bool(voter.has_voted)
+        })
+
+    return {"voters": results}
+
+
 @app.get("/candidate/{candidate_id}")
 def get_candidate(candidate_id: int, db: Session = Depends(get_db)):
     """
@@ -77,6 +99,10 @@ def list_candidates(db: Session = Depends(get_db)):
             "party": candidate.party
         })
     return {"candidates": results}
+
+
+
+
 
 @app.post("/admin/login")
 def admin_login(admin: schemas.AdminLogin, db: Session = Depends(get_db)):
