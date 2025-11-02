@@ -25,3 +25,11 @@ class Vote(Base):
 
     voter = relationship("Voter")
     candidate = relationship("Candidate", back_populates="votes")
+
+
+class Admin(Base):
+    __tablename__ = "admin"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(20), unique=True, nullable=False)
+    pass_field = Column("pass", String(20), nullable=False)  

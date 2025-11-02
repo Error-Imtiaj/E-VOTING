@@ -8,3 +8,7 @@ class VoterRegister(BaseModel):
 class CandidateCreate(BaseModel):
     name: str
     party: str
+
+class AdminLogin(BaseModel):
+    email: str
+    password: str

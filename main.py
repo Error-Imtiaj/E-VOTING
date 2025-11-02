@@ -31,6 +31,38 @@ def register_voter(voter: schemas.VoterRegister, db: Session = Depends(get_db)):
     db.refresh(new_voter)
     return {"message": f"Voter {voter.name} registered successfully"}
 
+@app.get("/voter/check/{nid}")
+def check_voter_registration(nid: str, db: Session = Depends(get_db)):
+    voter = db.query(models.Voter).filter(models.Voter.nid == nid).first()
+    if not voter:
+        raise HTTPException(status_code=404, detail="Voter not registered")
+
+    return {
+        "nid": voter.nid,
+        "name": voter.name,
+        "birth_date": voter.birth_date,
+        "has_voted": voter.has_voted,
+        "message": "Voter is registered ✅"
+    }
+
+@app.post("/admin/login")
+def admin_login(admin: schemas.AdminLogin, db: Session = Depends(get_db)):
+    # Search admin by email
+    db_admin = db.query(models.Admin).filter(models.Admin.email == admin.email).first()
+
+    # If no admin found
+    if not db_admin:
+        raise HTTPException(status_code=404, detail="Admin not found ❌")
+
+    # If password doesn’t match
+    if db_admin.pass_field != admin.password:
+        raise HTTPException(status_code=401, detail="Incorrect password ❌")
+
+    # Success
+    return {
+        "message": "Admin login successful ✅",
+        "admin_email": db_admin.email
+    }
 
 @app.post("/candidate/add")
 def add_candidate(candidate: schemas.CandidateCreate, db: Session = Depends(get_db)):
@@ -39,6 +71,8 @@ def add_candidate(candidate: schemas.CandidateCreate, db: Session = Depends(get_
     db.commit()
     db.refresh(new_candidate)
     return {"message": f"Candidate {candidate.name} added successfully"}
+
+
 
 
 @app.post("/vote/{nid}/{candidate_id}")
