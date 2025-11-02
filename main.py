@@ -45,6 +45,39 @@ def check_voter_registration(nid: str, db: Session = Depends(get_db)):
         "message": "Voter is registered ✅"
     }
 
+@app.get("/candidate/{candidate_id}")
+def get_candidate(candidate_id: int, db: Session = Depends(get_db)):
+    """
+    Check if a specific candidate exists by ID
+    """
+    candidate = db.query(models.Candidate).filter(models.Candidate.id == candidate_id).first()
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    
+    return {
+        "id": candidate.id,
+        "name": candidate.name,
+        "party": candidate.party
+    }
+
+@app.get("/candidates")
+def list_candidates(db: Session = Depends(get_db)):
+    """
+    List all registered candidates
+    """
+    candidates = db.query(models.Candidate).all()
+    if not candidates:
+        return {"message": "No candidates registered yet", "candidates": []}
+
+    results = []
+    for candidate in candidates:
+        results.append({
+            "id": candidate.id,
+            "name": candidate.name,
+            "party": candidate.party
+        })
+    return {"candidates": results}
+
 @app.post("/admin/login")
 def admin_login(admin: schemas.AdminLogin, db: Session = Depends(get_db)):
     # Search admin by email
