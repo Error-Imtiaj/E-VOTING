@@ -2,10 +2,20 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models, schemas
 from database import engine, SessionLocal
+from fastapi.middleware.cors import CORSMiddleware
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="E-Voting Machine API")
+
+# Allow all origins (or specify your frontend URL)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or ["http://localhost:3000", "http://127.0.0.1:5500"]
+    allow_credentials=True,
+    allow_methods=["*"],  # <- IMPORTANT: allows OPTIONS
+    allow_headers=["*"],  # <- allows Content-Type, Authorization, etc.
+)
 
 def get_db():
     db = SessionLocal()
@@ -85,7 +95,7 @@ def get_candidate(candidate_id: int, db: Session = Depends(get_db)):
 @app.get("/candidates")
 def list_candidates(db: Session = Depends(get_db)):
     """
-    List all registered candidates
+    List all registered candidates with vote counts
     """
     candidates = db.query(models.Candidate).all()
     if not candidates:
@@ -93,12 +103,16 @@ def list_candidates(db: Session = Depends(get_db)):
 
     results = []
     for candidate in candidates:
+        vote_count = db.query(models.Vote).filter(models.Vote.candidate_id == candidate.id).count()
         results.append({
             "id": candidate.id,
             "name": candidate.name,
-            "party": candidate.party
+            "party": candidate.party,
+            "vote_count": vote_count
         })
+
     return {"candidates": results}
+
 
 
 

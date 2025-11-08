@@ -31,5 +31,5 @@ class Admin(Base):
     __tablename__ = "admin"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(20), unique=True, nullable=False)
-    pass_field = Column("pass", String(20), nullable=False)  
+    email = Column(String(200), unique=True, nullable=False)
+    pass_field = Column("pass", String(200), nullable=False)  
